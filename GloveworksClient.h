@@ -27,6 +27,8 @@
 #include <QTableWidgetItem>
 #include <QHeaderView>
 #include <QJsonArray>
+#include <QStringList>
+#include <QClipboard>
 
 class GloveworksClient : public QMainWindow
 {
@@ -41,12 +43,15 @@ public slots:
     void mapsDownloadFinished();
     void cleanupAndQuit();
     void toggleLaunchOnBoot(int state);
-    void getServersInfo();
+    void copyConnect(int row, int column);
 
 private:
     void createActions();
     void createSysTray();
     void closeWithTimer(QWidget* wdg, int timeout);
+    void getServersInfo();
+    void setTableHeaders(QTableWidget* table, QStringList headers);
+    void populateTable(QTableWidget* table, QStringList headers, QJsonArray arr);
     QString createTempFolder();
     QPlainTextEdit* createLogWin(QWidget* wdg);
 
@@ -63,7 +68,6 @@ private:
 
     QNetworkAccessManager networkManager;
     QNetworkReply* mapsDownloadReply = nullptr;
-    QNetworkReply* serverInfoReply = nullptr;
 
     QPlainTextEdit* logText = nullptr;
 
@@ -71,4 +75,5 @@ private:
     QString logFilePath = "";
 
     QJsonArray serversInfo;
+    QTableWidget* serversTable;
 };

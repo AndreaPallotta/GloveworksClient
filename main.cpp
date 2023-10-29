@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
     GloveworksClient w;
-    w.show(); // remove to hide main window
+    // w.show(); // remove to hide main window
 
     return app.exec();
 }

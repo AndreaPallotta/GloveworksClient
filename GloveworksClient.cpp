@@ -18,7 +18,7 @@ GloveworksClient::GloveworksClient(QWidget* parent)
     //tempPath = createTempFolder();
     trayIcon->show();
 
-    serversInfo = QJsonArray();
+    serversInfo = {};
 
     QGuiApplication::setQuitOnLastWindowClosed(false);
 }
@@ -44,34 +44,72 @@ void GloveworksClient::manageServersWdg()
     if (serversWdg) delete serversWdg;
 
     serversWdg = new QWidget();
+    serversWdg->setFixedWidth(700);
     QVBoxLayout* layout = new QVBoxLayout(serversWdg);
 
-    QTableWidget* serversTable = new QTableWidget(serversWdg);
+    serversTable = new QTableWidget(serversWdg);
     serversTable->setRowCount(0);
     serversTable->setColumnCount(8);
 
     serversTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     serversWdg->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    serversTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Name"));
-    serversTable->setHorizontalHeaderItem(1, new QTableWidgetItem("Map"));
-    serversTable->setHorizontalHeaderItem(2, new QTableWidgetItem("Game"));
-    serversTable->setHorizontalHeaderItem(3, new QTableWidgetItem("Version"));
-    serversTable->setHorizontalHeaderItem(4, new QTableWidgetItem("Players"));
-    serversTable->setHorizontalHeaderItem(5, new QTableWidgetItem("VAC"));
-    serversTable->setHorizontalHeaderItem(6, new QTableWidgetItem("Tags"));
-    serversTable->setHorizontalHeaderItem(7, new QTableWidgetItem("Connect"));
+    QStringList headers = {"Name", "Map", "Game", "Version", "Full", "Port", "Players", "VAC", "Tags", "Connect"};
+
+    setTableHeaders(serversTable, headers);
 
     layout->addWidget(serversTable);
 
     serversTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-    //connect(serversWdg, &QWidget::showEvent, this, &GloveworksClient::getServersInfo);
+    getServersInfo();
 
-    qDebug() << serversInfo;
+    populateTable(serversTable, headers, serversInfo);
+    connect(serversTable, &QTableWidget::cellDoubleClicked, this, &GloveworksClient::copyConnect);
 
-    serversWdg->showMaximized();
+    //serversWdg->showMaximized();
     serversWdg->setLayout(layout);
+}
+
+void GloveworksClient::populateTable(QTableWidget* table, QStringList headers, QJsonArray arr)
+{
+    table->setRowCount(0);
+
+    for (const QJsonValue& value : arr)
+    {
+        if (!value.isObject()) continue;
+
+        QJsonObject obj = value.toObject();
+        int row = table->rowCount();
+        table->insertRow(row);
+
+        int col = 0;
+        for (const QString& header : headers)
+        {
+            QJsonValue val = obj[header];
+
+            QTableWidgetItem* item = new QTableWidgetItem();
+
+            if (val.isString())
+            {
+                item->setText(val.toString());
+            }
+            else if (val.isDouble())
+            {
+                item->setData(Qt::DisplayRole, val.toDouble());
+            }
+            else if (val.isBool())
+            {
+                item->setText(val.toBool() ? "True" : "False");
+            }
+
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            item->setTextAlignment(Qt::AlignCenter);
+
+            table->setItem(row, col, item);
+            ++col;
+        }
+    }
 }
 
 void GloveworksClient::manageDownloadWdg()
@@ -105,6 +143,7 @@ void GloveworksClient::manageSettingsWdg()
     QVBoxLayout* layout = new QVBoxLayout(settingsWdg);
     QPushButton* closeBtn = new QPushButton("Close", settingsWdg);
     QCheckBox* onBootCheckbox = new QCheckBox("En&able on boot");
+    // TODO: Dynamically get checkbox value by checking whether or not there is a symlink to the startup folder
 
     settingsWdg->setFixedWidth(300);
     settingsWdg->show();
@@ -206,7 +245,9 @@ void GloveworksClient::createActions()
 
 void GloveworksClient::cleanupAndQuit()
 {
-    RegistryManager::deleteFolder(tempPath);
+    if (!tempPath.isEmpty()) {
+        RegistryManager::deleteFolder(tempPath);
+    }
     qApp->quit();
 }
 
@@ -242,11 +283,19 @@ void GloveworksClient::toggleLaunchOnBoot(int state)
     }
 }
 
+void GloveworksClient::copyConnect(int row, int col)
+{
+    QString value = serversTable->item(row, col)->text();
+    QClipboard* clipboard = QGuiApplication::clipboard();
+    clipboard->setText(value);
+}
+
 void GloveworksClient::getServersInfo()
 {
     // TODO: Read servers from a file
     QStringList *servers = new QStringList();
     servers->append("15.235.181.104:27015");
+    servers->append("157.90.94.173:27031");
 
     unsigned long timeout = 5000;
     ServersManager res;
@@ -284,5 +333,13 @@ QString GloveworksClient::createTempFolder()
     else
     {
         return "Failed to create temp folder";
+    }
+}
+
+void GloveworksClient::setTableHeaders(QTableWidget* table, QStringList headers)
+{
+    for (int i = 0; i < headers.size(); ++i)
+    {
+        table->setHorizontalHeaderItem(i, new QTableWidgetItem(headers.at(i)));
     }
 }
