@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "Path.h"
 #include "ZipManager.h"
+#include "ServersManager.h"
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
@@ -19,8 +20,13 @@
 #include <QFile>
 #include <QDir>
 #include <QTimer>
-
-
+#include <QPushButton>
+#include <QCheckbox>
+#include <QUuid>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+#include <QHeaderView>
+#include <QJsonArray>
 
 class GloveworksClient : public QMainWindow
 {
@@ -29,26 +35,31 @@ public:
     GloveworksClient(QWidget* parent = nullptr);
 
 public slots:
+    void manageServersWdg();
     void manageDownloadWdg();
+    void manageSettingsWdg();
     void mapsDownloadFinished();
     void cleanupAndQuit();
+    void toggleLaunchOnBoot(int state);
+    void getServersInfo();
 
 private:
     void createActions();
     void createSysTray();
     void closeWithTimer(QWidget* wdg, int timeout);
+    QString createTempFolder();
     QPlainTextEdit* createLogWin(QWidget* wdg);
 
     QSystemTrayIcon* trayIcon;
     QMenu* trayIconMenu;
-    QAction* connectAction;
+    QAction* serversAction;
     QAction* updateMapsAction;
     QAction* settingsAction;
     QAction* quitAction;
 
-    QWidget* serverWdg = nullptr;
+    QWidget* serversWdg = nullptr;
     QWidget* downloadWdg = nullptr;
-    QWidget* optionWdg = nullptr;
+    QWidget* settingsWdg = nullptr;
 
     QNetworkAccessManager networkManager;
     QNetworkReply* mapsDownloadReply = nullptr;
@@ -56,5 +67,8 @@ private:
 
     QPlainTextEdit* logText = nullptr;
 
-    QString tempPath = nullptr;
+    QString tempPath = "";
+    QString logFilePath = "";
+
+    QJsonArray serversInfo;
 };

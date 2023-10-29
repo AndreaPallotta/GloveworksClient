@@ -64,6 +64,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\andre\OneDrive\Desktop\GloveworksClient\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
@@ -98,6 +104,8 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Path.h" />
     <ClInclude Include="RegistryManager.h" />
+    <ClInclude Include="ServersManager.h" />
+    <ClInclude Include="ssq.h" />
     <ClInclude Include="ZipManager.h" />
     <QtRcc Include="GloveworksClient.qrc" />
     <QtUic Include="GloveworksClient.ui" />
